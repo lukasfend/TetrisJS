@@ -8,8 +8,12 @@ const GameConfig = {
 };
 let GameState = {
 	time: 0,
+	deltaTime: 0,
 	interVal: null,
-	paused: false
+	paused: false,
+	score: 0,
+	lines: 0,
+	nextShape: null
 };
 
 let inputbuffer = "";
@@ -17,6 +21,7 @@ let inputbuffer = "";
 const r = new RenderEngine(document.getElementById("canvas"), GameConfig);
 
 let p = new Player(parseInt(GameConfig.fieldsX/2),0);
+let virtualPlayer = new Player(GameConfig.fieldsX + 4,1);
 let tiles = [];
 
 const Game = {
@@ -35,8 +40,10 @@ const Game = {
 			tiles = [...tiles, newRow];
 		}
 
-		this.frame();
+		GameState.deltaTime = Date.now();
 		GameState.interVal = setInterval(this.tick, GameConfig.tickRate);
+		GameState.nextShape = Shape.generateNewShape(virtualPlayer);
+		this.frame();
 	},
 
 	frame() {
@@ -59,6 +66,8 @@ const Game = {
 		if(GameState.paused) {
 			r.renderPauseInfo();
 		}
+		r.renderScore(GameState);
+		r.renderPreview(GameState);
 
 		const _ref = this;
 		window.requestAnimationFrame( () => {
@@ -68,12 +77,41 @@ const Game = {
 	},
 
 	tick() {
-		p.y++;
+		let requireNewShape = false;
+
+		// Check for collisions on the borders
+		const possibleCollisionTiles = p.currentShape.getActiveTiles();
+		let didCollideBottom = false;
+		for(let coll of possibleCollisionTiles) {
+			if(coll.y + 1 === GameConfig.fieldsY) {
+				didCollideBottom = true;
+			}
+		}
+
+		if(!didCollideBottom) {
+			p.y++;
+		} else {
+			for(let coll of possibleCollisionTiles) {
+				tiles[coll.x][coll.y].setActive(true);
+				tiles[coll.x][coll.y].setColor(coll.color);
+				requireNewShape = true;
+			}
+		}
+
+		if(requireNewShape) {
+			p.x = parseInt(GameConfig.fieldsX / 2);
+			p.y = 0;
+			p.currentShape = GameState.nextShape;
+			p.currentShape.player = p;
+			GameState.nextShape = Shape.generateNewShape(virtualPlayer);
+		}
+
+		GameState.time += (Date.now() - GameState.deltaTime);
+		GameState.deltaTime = Date.now();
 	},
 
 	keyPress(e) {
 		inputbuffer += e.key;
-		console.log(e.key)
 		if(inputbuffer.includes("RICKROLL")) {
 			location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 		}
@@ -81,6 +119,11 @@ const Game = {
 		switch(e.code) {
 			case "KeyA":
 			case "ArrowLeft":
+				if(p.currentShape.type === ShapeType.LINE) {
+
+				} else {
+
+				}
 				p.x--;
 				break;
 			case "KeyD":
@@ -89,7 +132,7 @@ const Game = {
 				break;
 			case "KeyS":
 			case "ArrowDown":
-				p.y++;
+				this.tick();
 				break;
 			case "KeyW":
 			case "ArrowUp":
@@ -104,6 +147,7 @@ const Game = {
 					clearInterval(GameState.interVal);
 				} else {
 					GameState.paused = false;
+					GameState.deltaTime = Date.now();
 					GameState.interVal = setInterval(this.tick, GameConfig.tickRate);
 				}
 				break;

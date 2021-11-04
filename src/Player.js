@@ -48,6 +48,35 @@ class Shape {
 		this.rotateLeft();
 		this.rotateLeft();
 	}
+
+	static generateNewShape(p) {
+		let t;
+		switch(Math.floor(Math.random() * 7)) {
+			default:
+				t = ShapeType.BLOCK;
+				break;
+			case 1:
+				t = ShapeType.LINE;
+				break;
+			case 2:
+				t = ShapeType.T;
+				break;
+			case 3:
+				t = ShapeType.L;
+				break;
+			case 4:
+				t = ShapeType.ANTI_L;
+				break;
+			case 5:
+				t = ShapeType.Z;
+				break;
+			case 6:
+				t = ShapeType.ANTI_Z;
+				break;
+		}
+		return generateShape(t, p);
+			
+	}
 }
 
 const ShapeType = {

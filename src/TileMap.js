@@ -25,7 +25,7 @@ class Tile {
 	
 			// Render block self
 			ctx.beginPath();
-			ctx.strokeStyle = "rgba(0,0,0,0.4)";
+			ctx.strokeStyle = "rgba(0,0,0,0.1)";
 			ctx.lineWidth = 2;
 			// body
 			ctx.fillStyle = this.color;
@@ -37,6 +37,7 @@ class Tile {
 			ctx.lineTo(x + u - 1, y + u - 1);
 			ctx.lineTo(x + 1, y + u - 1);
 			ctx.lineTo(x + 1, y + 1);
+			ctx.lineTo(x + 2, y + 1);
 			ctx.stroke();
 			ctx.closePath();
 		}

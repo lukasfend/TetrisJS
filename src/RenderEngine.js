@@ -37,7 +37,7 @@ class RenderEngine {
 	}
 
 	renderGrid() {
-		this.ctx.strokeStyle = "rgba(255,255,255,0.1)";
+		this.ctx.strokeStyle = "rgba(255,255,255,0.05)";
 		const x = this.gameField.startX;
 		const y = this.gameField.startY;
 		const u = this.gameField.unit;
@@ -60,9 +60,99 @@ class RenderEngine {
 	}
 
 	renderPauseInfo() {
-		this.ctx.fillStyle = "#ff0000";
-		this.ctx.font = "40px Consolas";
-		this.ctx.fillText("PAUSE", 100, 100);
+		const modal = {
+			x: this.gameField.startX + parseInt(this.gameField.width / 2) - 150,
+			y: this.gameField.startY + parseInt(this.gameField.height / 2) - 75,
+			width: 300,
+			height: 150
+		};
+		this.ctx.fillStyle = "#000000";
+		this.ctx.strokeStyle = "#FFFFFF";
+
+		this.ctx.beginPath();
+		this.ctx.lineWidth = 8;
+		this.ctx.lineCap = "rounded";
+		this.ctx.moveTo(modal.x,modal.y);
+		this.ctx.lineTo(modal.x + modal.width, modal.y);
+		this.ctx.lineTo(modal.x + modal.width, modal.y + modal.height);
+		this.ctx.lineTo(modal.x, modal.y + modal.height);
+		this.ctx.lineTo(modal.x, modal.y);
+		this.ctx.lineTo(modal.x+1, modal.y);
+		this.ctx.stroke();
+		this.ctx.fillRect(modal.x,modal.y,modal.width,modal.height);
+
+		this.ctx.fillStyle = "#7700ff";
+		this.ctx.textAlign = "center";
+		this.ctx.font = "90px ArcadeClassic";
+		this.ctx.fillText("PAUSE", modal.x + modal.width/2, modal.y + modal.height/2+30);
+	}
+	renderScore(GameState) {
+		// Lines
+		this.ctx.fillStyle = "#FFFFFF";
+		this.ctx.textAlign = "left";
+		this.ctx.font = "22px ArcadeClassic";
+		this.ctx.fillText("LINES", this.gameField.startX + this.gameField.width + this.gameField.unit, this.gameField.startY + 265);
+		
+		this.ctx.font = "40px ArcadeClassic";
+		this.ctx.fillText("00000", this.gameField.startX + this.gameField.width + this.gameField.unit, this.gameField.startY + 300);
+
+		// Level
+		this.ctx.fillStyle = "#FFFFFF";
+		this.ctx.textAlign = "right";
+		this.ctx.font = "22px ArcadeClassic";
+		this.ctx.fillText("LEVEL", this.gameField.startX + this.gameField.width + 350, this.gameField.startY + 265);
+		this.ctx.font = "40px ArcadeClassic";
+		this.ctx.fillText("000", this.gameField.startX + this.gameField.width + 350, this.gameField.startY + 300);
+
+		// Score
+		this.ctx.fillStyle = "#FFFFFF";
+		this.ctx.textAlign = "left";
+		this.ctx.font = "30px ArcadeClassic";
+		this.ctx.fillText("SCORE", this.gameField.startX + this.gameField.width + this.gameField.unit, this.gameField.startY + 355);
+		this.ctx.font = "48px ArcadeClassic";
+		this.ctx.fillText("00000", this.gameField.startX + this.gameField.width + this.gameField.unit, this.gameField.startY + 395);
+
+		// Time
+		this.ctx.fillStyle = "#CACACA";
+		this.ctx.textAlign = "right";
+		this.ctx.font = "22px ArcadeClassic";
+		this.ctx.fillText("TIME", this.gameField.startX + this.gameField.width + 350, this.gameField.startY + 355);
+		this.ctx.font = "40px ArcadeClassic";
+		let time = parseInt(GameState.time / 1000);
+		let mins = parseInt(time / 60);
+		let secs = time % 60;
+		secs = (secs < 10) ? "0" + secs : secs;
+		mins = (mins < 10) ? "0" + mins : mins;
+		this.ctx.fillText(mins + ":" + secs, this.gameField.startX + this.gameField.width + 350, this.gameField.startY + 395);
+
+		// Copynote
+		this.ctx.fillStyle = "#FFFFFF";
+		this.ctx.textAlign = "center";
+		this.ctx.font = "18px ArcadeClassic";
+		this.ctx.fillText("© Lukas 'Dragoran' Fend", this.gameField.startX + this.gameField.width/2, this.gameField.startY + this.gameField.height+25);
+	}
+
+	renderPreview(GameState) {
+		this.ctx.strokeStyle = "#e0e0e0";
+		this.ctx.fillStyle = "#090909";
+		this.ctx.beginPath();
+		this.ctx.moveTo(this.gameField.startX + this.gameField.width + this.gameField.unit, this.gameField.startY);
+		this.ctx.lineTo(this.gameField.startX + this.gameField.width + this.gameField.unit + 300, this.gameField.startY);
+		this.ctx.lineTo(this.gameField.startX + this.gameField.width + this.gameField.unit + 300, this.gameField.startY + 6 * this.gameField.unit);
+		this.ctx.lineTo(this.gameField.startX + this.gameField.width + this.gameField.unit, this.gameField.startY + 6 * this.gameField.unit);
+		this.ctx.lineTo(this.gameField.startX + this.gameField.width + this.gameField.unit, this.gameField.startY);
+		this.ctx.fill();
+		this.ctx.stroke();
+		this.ctx.fillStyle = "#22ff22";
+		this.ctx.textAlign = "left";
+		this.ctx.font = "30px ArcadeClassic";
+		this.ctx.fillText("NEXT UP", this.gameField.startX + this.gameField.width + this.gameField.unit, this.gameField.startY -5	);
+		this.ctx.closePath();
+		for(let t of GameState.nextShape.getActiveTiles()) {
+			t.autoRender(this.gameField,this.getCtx());
+		}
+		GameState.nextShape;
+
 	}
 
 	// Drawing Methods
