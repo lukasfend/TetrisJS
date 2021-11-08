@@ -17,6 +17,16 @@ let GameState = {
 };
 
 let inputbuffer = "";
+let currentButtons = {
+	KeyW: false,
+	KeyA: false,
+	KeyS: false,
+	KeyD: false,
+	ArrowDown: false,
+	ArrowUp: false,
+	ArrowLeft: false,
+	ArrowRight: false
+};
 
 const r = new RenderEngine(document.getElementById("canvas"), GameConfig);
 
@@ -69,6 +79,9 @@ const Game = {
 		r.renderScore(GameState);
 		r.renderPreview(GameState);
 
+		// Draw current keys
+		r.renderKeys(GameState, currentButtons);
+
 		const _ref = this;
 		window.requestAnimationFrame( () => {
 			_ref.frame();
@@ -76,20 +89,32 @@ const Game = {
 
 	},
 
-	tick() {
+	handleCollisions(dx, dy, rotate = false) {
 		let requireNewShape = false;
-
-		// Check for collisions on the borders
-		const possibleCollisionTiles = p.currentShape.getActiveTiles();
 		let didCollideBottom = false;
+		let didCollideWithWalls = false;
+		let didFaultyRotation = false;
+
+		// Check for collisions on the bottom
+		const possibleCollisionTiles = p.currentShape.getActiveTiles();
+
 		for(let coll of possibleCollisionTiles) {
-			if(coll.y + 1 === GameConfig.fieldsY) {
+			// check bottom collision
+			if(coll.y + dy === GameConfig.fieldsY) {
 				didCollideBottom = true;
 			}
+
+			// check side collision
+			if((coll.x + dx) < 0) {
+				didCollideWithWalls = true;
+			} else if((coll.x + dx) >= GameConfig.fieldsX) {
+				didCollideWithWalls = true;
+			}
+		
 		}
 
 		if(!didCollideBottom) {
-			p.y++;
+			p.y+=dy;
 		} else {
 			for(let coll of possibleCollisionTiles) {
 				tiles[coll.x][coll.y].setActive(true);
@@ -98,6 +123,15 @@ const Game = {
 			}
 		}
 
+		if(!didCollideWithWalls) {
+			p.x += dx;
+		}
+
+		if(!didFaultyRotation && rotate) {
+			p.currentShape.rotate();
+		}
+
+
 		if(requireNewShape) {
 			p.x = parseInt(GameConfig.fieldsX / 2);
 			p.y = 0;
@@ -105,12 +139,16 @@ const Game = {
 			p.currentShape.player = p;
 			GameState.nextShape = Shape.generateNewShape(virtualPlayer);
 		}
+	},
 
+	tick() {
+		Game.handleCollisions(0,1);
 		GameState.time += (Date.now() - GameState.deltaTime);
 		GameState.deltaTime = Date.now();
 	},
 
 	keyPress(e) {
+		document.getElementById("bgmusic").play();
 		inputbuffer += e.key;
 		if(inputbuffer.includes("RICKROLL")) {
 			location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
@@ -119,33 +157,30 @@ const Game = {
 		switch(e.code) {
 			case "KeyA":
 			case "ArrowLeft":
-				if(p.currentShape.type === ShapeType.LINE) {
-
-				} else {
-
-				}
-				p.x--;
+				this.handleCollisions(-1, 0, false);
 				break;
 			case "KeyD":
 			case "ArrowRight":
-				p.x++;
+				this.handleCollisions(1, 0, false);
 				break;
 			case "KeyS":
 			case "ArrowDown":
-				this.tick();
+				this.handleCollisions(0,1,false);
 				break;
 			case "KeyW":
 			case "ArrowUp":
-				p.currentShape.rotate();
+				this.handleCollisions(0,0, true);
 				break;
 			case "Space":
 				// go all the way down
 				break;
 			case "Escape":
 				if(!GameState.paused) {
+					document.getElementById("bgmusic").pause();
 					GameState.paused = true;
 					clearInterval(GameState.interVal);
 				} else {
+					document.getElementById("bgmusic").play();
 					GameState.paused = false;
 					GameState.deltaTime = Date.now();
 					GameState.interVal = setInterval(this.tick, GameConfig.tickRate);
@@ -156,8 +191,16 @@ const Game = {
 
 };
 
-window.onkeydown = (e) => {
+window.onkeydown = e => {
+	if(currentButtons[e.code] !== null) {
+		currentButtons[e.code] = true;
+	}
 	Game.keyPress(e);
+}
+window.onkeyup = e => {
+	if(currentButtons[e.code] !== null) {
+		currentButtons[e.code] = false;
+	}
 }
 
 

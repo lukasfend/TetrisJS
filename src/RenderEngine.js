@@ -155,6 +155,46 @@ class RenderEngine {
 
 	}
 
+	renderKeys(GameState, currentButtons) {
+		this.renderKey(
+			this.gameField.startX + this.gameField.width + this.gameField.unit*4,
+			this.gameField.startY+17*this.gameField.unit,
+			"W", 
+			currentButtons.KeyW || currentButtons.ArrowUp
+		);
+		this.renderKey(
+			this.gameField.startX + this.gameField.width + this.gameField.unit,
+			this.gameField.startY+20*this.gameField.unit,
+			"A", 
+			currentButtons.KeyA || currentButtons.ArrowLeft
+		);
+		this.renderKey(
+			this.gameField.startX + this.gameField.width + this.gameField.unit*4,
+			this.gameField.startY+20*this.gameField.unit,
+			"S", 
+			currentButtons.KeyS || currentButtons.ArrowDown
+		);
+		this.renderKey(
+			this.gameField.startX + this.gameField.width + this.gameField.unit*7,
+			this.gameField.startY+20*this.gameField.unit,
+			"D", 
+			currentButtons.KeyD || currentButtons.ArrowRight
+		);
+	}
+
+	renderKey(x,y,key = "?", active = false) {
+		this.ctx.beginPath();
+		this.ctx.lineWidth = 3;
+		this.ctx.strokeStyle = active ? "#00ff40" : "#FFFFFF";
+		this.ctx.rect(x,y,this.gameField.unit*2, this.gameField.unit*2);
+		this.ctx.stroke();
+		this.ctx.fillStyle = active ? "#00ff40" : "#FFFFFF";
+		this.ctx.textAlign = "center";
+		this.ctx.font = "35px ArcadeClassic";
+		this.ctx.fillText(key, x+this.gameField.unit, y+45);
+		this.ctx.closePath();
+	}
+
 	// Drawing Methods
 	clear() {
 		this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
